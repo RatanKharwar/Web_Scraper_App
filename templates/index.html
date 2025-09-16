@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .form-section {
+            padding: 40px;
+            background: white;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input, .form-group select {
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .scrape-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scrape-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-beautifulsoup {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-beautifulsoup:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-selenium {
+            background: linear-gradient(45deg, #007bff, #6610f2);
+            color: white;
+        }
+
+        .btn-selenium:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-auto {
+            background: linear-gradient(45deg, #fd7e14, #dc3545);
+            color: white;
+        }
+
+        .btn-auto:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(253, 126, 20, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            min-height: 200px;
+        }
+
+        .results-header {
+            background: linear-gradient(45deg, #495057, #6c757d);
+            color: white;
+            padding: 20px 40px;
+            margin: -30px -40px 30px -40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #17a2b8, #20c997);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .export-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .results-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .results-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .results-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .results-item:hover {
+            background: #f8f9fa;
+        }
+
+        .results-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-index {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 0.9em;
+        }
+
+        .item-value {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.info {
+            background: #17a2b8;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕷️ Web Scraper</h1>
+            <p>Scrape web content using Beautiful Soup or Selenium with intelligent auto-detection</p>
+        </div>
+
+        <div class="form-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="url">🌐 Target URL</label>
+                    <input type="url" id="url" placeholder="https://example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="selector">🎯 CSS Selector <span style="color: #999; font-weight: normal;">(optional)</span></label>
+                    <input type="text" id="selector" placeholder="h1, .class-name, #id-name (leave empty to scrape all text)">
+                </div>
+
+                <div class="form-group">
+                    <label for="attribute">📋 Attribute to Extract</label>
+                    <select id="attribute">
+                        <option value="Text Content">Text Content</option>
+                        <option value="href">href (Links)</option>
+                        <option value="src">src (Images/Scripts)</option>
+                        <option value="alt">alt (Image Alt Text)</option>
+                        <option value="title">title</option>
+                        <option value="class">class</option>
+                        <option value="id">id</option>
+                        <option value="data-value">data-value</option>
+                        <option value="placeholder">placeholder</option>
+                        <option value="value">value (Input Fields)</option>
+                        <option value="name">name</option>
+                        <option value="type">type</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="scrape-btn btn-beautifulsoup" id="scrape-bs">
+                    <span class="btn-text">🌟 Beautiful Soup</span>
+                </button>
+                <button class="scrape-btn btn-selenium" id="scrape-selenium">
+                    <span class="btn-text">🤖 Selenium</span>
+                </button>
+                <button class="scrape-btn btn-auto" id="scrape-auto">
+                    <span class="btn-text">🔄 Auto Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="results-header">
+                <h2>📊 Results</h2>
+                <button class="export-btn" id="export-csv">
+                    📥 Save as CSV
+                </button>
+            </div>
+            <div id="results">
+                <div class="no-results">
+                    <h3>🎯 Ready to Scrape!</h3>
+                    <p>Fill in the URL above and click one of the scraping methods to get started.</p>
+                    <p><small>CSS Selector is optional - defaults will be used if not provided.</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let currentResults = [];
+        let currentMetadata = {};
+
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("🕷️ Web Scraper loaded!");
+
+            const urlInput = document.getElementById("url");
+            const selectorInput = document.getElementById("selector");
+            const attributeSelect = document.getElementById("attribute");
+            const resultsDiv = document.getElementById("results");
+            const exportBtn = document.getElementById("export-csv");
+
+            const scrapeBsBtn = document.getElementById("scrape-bs");
+            const scrapeSeleniumBtn = document.getElementById("scrape-selenium");
+            const scrapeAutoBtn = document.getElementById("scrape-auto");
+
+            // Event listeners
+            scrapeBsBtn.addEventListener("click", () => scrapeData("beautifulsoup"));
+            scrapeSeleniumBtn.addEventListener("click", () => scrapeData("selenium"));
+            scrapeAutoBtn.addEventListener("click", () => scrapeData("auto"));
+            exportBtn.addEventListener("click", exportToCsv);
+
+            async function scrapeData(method) {
+                const url = urlInput.value.trim();
+                let selector = selectorInput.value.trim();
+                const attribute = attributeSelect.value;
+
+                // Only validate URL is required
+                if (!url) {
+                    showToast("Please enter a URL", "error");
+                    return;
+                }
+
+                // If no selector provided, use smart defaults
+                if (!selector) {
+                    if (attribute === "href") {
+                        selector = "a";
+                        showToast("Using default selector 'a' for links", "info");
+                    } else if (attribute === "src") {
+                        selector = "img";
+                        showToast("Using default selector 'img' for images", "info");
+                    } else {
+                        selector = "body";
+                        showToast("Using default selector 'body' for all text", "info");
+                    }
+                }
+
+                const activeBtn = document.getElementById(`scrape-${method === 'beautifulsoup' ? 'bs' : method}`);
+                const originalText = activeBtn.querySelector('.btn-text').textContent;
+                
+                setButtonLoading(activeBtn, true);
+                disableAllButtons(true);
+                showProgress(method);
+                exportBtn.style.display = "none";
+
+                try {
+                    const endpoint = method === 'auto' ? 'auto' : method;
+                    const response = await fetch(`http://127.0.0.1:5000/scrape/${endpoint}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url, selector, attribute })
+                    });
+
+                    const data = await response.json();
+                    console.log("Response received:", data);
+                    displayResults(data, { url, selector, attribute });
+
+                } catch (error) {
+                    console.error("Scraping error:", error);
+                    displayError("Failed to connect to the scraping service. Please make sure the Flask server is running.");
+                } finally {
+                    setButtonLoading(activeBtn, false);
+                    disableAllButtons(false);
+                    activeBtn.querySelector('.btn-text').textContent = originalText;
+                }
+            }
+
+            function showProgress(method) {
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="loading" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+                        <h3>Scraping in progress...</h3>
+                        <p>Using ${method === 'beautifulsoup' ? 'Beautiful Soup' : method === 'selenium' ? 'Selenium' : 'Auto Mode'}</p>
+                    </div>
+                `;
+            }
+
+            function setButtonLoading(button, isLoading) {
+                const textSpan = button.querySelector('.btn-text');
+                if (isLoading) {
+                    textSpan.innerHTML = '<div class="loading"></div>Scraping...';
+                }
+            }
+
+            function disableAllButtons(disabled) {
+                [scrapeBsBtn, scrapeSeleniumBtn, scrapeAutoBtn].forEach(btn => {
+                    btn.disabled = disabled;
+                });
+            }
+
+            function displayResults(data, requestData) {
+                if (data.success && data.results && data.results.length > 0) {
+                    currentResults = data.results;
+                    currentMetadata = {
+                        url: requestData.url,
+                        selector: requestData.selector,
+                        attribute: requestData.attribute,
+                        method: data.method,
+                        execution_time: data.execution_time,
+                        total_found: data.results.length
+                    };
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="results-summary">
+                            <h3>✅ Success!</h3>
+                            <p><strong>Found:</strong> ${data.results.length} items</p>
+                            <p><strong>Method:</strong> ${data.method || 'Unknown'}</p>
+                            <p><strong>Selector:</strong> ${requestData.selector}</p>
+                            <p><strong>Time:</strong> ${data.execution_time || 'N/A'}s</p>
+                        </div>
+                        <div class="results-list">
+                            ${data.results.map((item, index) => `
+                                <div class="results-item">
+                                    <div class="item-index">${index + 1}</div>
+                                    <div class="item-value">${escapeHtml(item.value || item)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    exportBtn.style.display = "block";
+                    showToast(`Successfully scraped ${data.results.length} items!`);
+                    
+                } else if (data.success && (!data.results || data.results.length === 0)) {
+                    resultsDiv.innerHTML = `
+                        <div class="no-results">
+                            <h3>😕 No Results Found</h3>
+                            <p>The CSS selector "${requestData.selector}" didn't match any elements.</p>
+                            <p>Try using a different selector or leave it empty for automatic detection.</p>
+                        </div>
+                    `;
+                    exportBtn.style.display = "none";
+                    
+                } else {
+                    displayError(data.error || "Unknown error occurred", data.method);
+                    exportBtn.style.display = "none";
+                }
+            }
+
+            function displayError(errorMessage, method = "") {
+                resultsDiv.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Scraping Failed ${method ? `(${method})` : ''}</h3>
+                        <p>${escapeHtml(errorMessage)}</p>
+                    </div>
+                `;
+                exportBtn.style.display = "none";
+                showToast("Scraping failed. Please check the details.", "error");
+            }
+
+            async function exportToCsv() {
+                if (!currentResults || currentResults.length === 0) {
+                    showToast("No data to export", "error");
+                    return;
+                }
+
+                exportBtn.disabled = true;
+                exportBtn.textContent = "Exporting...";
+
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/export-csv", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            results: currentResults,
+                            metadata: currentMetadata
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Create and trigger download
+                        const blob = new Blob([data.csv_content], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = data.filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+
+                        showToast("CSV file downloaded successfully!");
+                    } else {
+                        showToast("Failed to export CSV: " + data.error, "error");
+                    }
+
+                } catch (error) {
+                    console.error("Export error:", error);
+                    showToast("Failed to export CSV", "error");
+                } finally {
+                    exportBtn.disabled = false;
+                    exportBtn.textContent = "📥 Save as CSV";
+                }
+            }
+
+            function showToast(message, type = "success") {
+                const toast = document.getElementById("toast");
+                toast.textContent = message;
+                toast.className = `toast ${type === "error" ? "error" : type === "info" ? "info" : ""}`;
+                toast.classList.add("show");
+
+                setTimeout(() => {
+                    toast.classList.remove("show");
+                }, 3000);
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        });
+    </script>
+</body>
+</html>
