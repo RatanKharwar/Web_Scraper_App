@@ -422,7 +422,8 @@
 
                 try {
                     const endpoint = method === 'auto' ? 'auto' : method;
-                    const response = await fetch(`http://127.0.0.1:5000/scrape/${endpoint}`, {
+                    // FIXED: Use relative URL instead of localhost
+                    const response = await fetch(`/scrape/${endpoint}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ url, selector, attribute })
@@ -535,7 +536,8 @@
                 exportBtn.textContent = "Exporting...";
 
                 try {
-                    const response = await fetch("http://127.0.0.1:5000/export-csv", {
+                    // FIXED: Use relative URL instead of localhost
+                    const response = await fetch("/export-csv", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
